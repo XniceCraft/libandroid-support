@@ -34,6 +34,8 @@
  * Information local to this implementation of stdio,
  * in particular, macros and private variables.
  */
+
+#include <sys/cdefs.h>
 #include <wchar.h>
 #include "wcio.h"
 #include "fileext.h"

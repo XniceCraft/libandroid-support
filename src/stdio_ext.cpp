@@ -74,10 +74,6 @@ int __fsetlocking(FILE* fp, int type) {
   if (type == FSETLOCKING_QUERY) {
     return old_state;
   }
-  if (type != FSETLOCKING_INTERNAL && type != FSETLOCKING_BYCALLER) {
-    // The API doesn't let us report an error, so blow up.
-    __libc_fatal("Bad type (%d) passed to __fsetlocking", type);
-  }
   _EXT(fp)->_stdio_handles_locking = (type == FSETLOCKING_INTERNAL);
   return old_state;
 }
