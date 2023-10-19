@@ -34,6 +34,10 @@
 #include <stdio_ext.h>
 #include <stdlib.h>
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 size_t __fbufsize(FILE* fp) {
   return fp->_bf._size;
 }
@@ -88,4 +92,7 @@ int ferror_unlocked(FILE* fp) {
   return __sferror(fp);
 }
 
+#ifdef __cplusplus
+}
+#endif
 #endif

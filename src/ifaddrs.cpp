@@ -34,6 +34,10 @@
 #include "LocalArray.h"
 #include "ScopedFd.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 // Android (bionic) doesn't have getifaddrs(3)/freeifaddrs(3).
 // We fake it here, so java_net_NetworkInterface.cpp can use that API
 // with all the non-portable code being in this file.
@@ -225,4 +229,7 @@ void freeifaddrs(ifaddrs* addresses) {
     delete addresses;
 }
 
+#ifdef __cplusplus
+}
+#endif
 #endif
