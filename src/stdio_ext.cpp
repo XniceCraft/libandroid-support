@@ -34,6 +34,8 @@
 #include <stdio_ext.h>
 #include <stdlib.h>
 
+#include "local.h"
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -68,7 +70,7 @@ void _flushlbf() {
 }
 
 int __fsetlocking(FILE* fp, int type) {
-  int old_state = fp->flags ? FSETLOCKING_INTERNAL : FSETLOCKING_BYCALLER;
+  int old_state = _EXT(fp)->_stdio_handles_locking ? FSETLOCKING_INTERNAL : FSETLOCKING_BYCALLER;
   if (type == FSETLOCKING_QUERY) {
     return old_state;
   }
@@ -76,7 +78,7 @@ int __fsetlocking(FILE* fp, int type) {
     // The API doesn't let us report an error, so blow up.
     __libc_fatal("Bad type (%d) passed to __fsetlocking", type);
   }
-  fp->flags = (type == FSETLOCKING_INTERNAL);
+  _EXT(fp)->_stdio_handles_locking = (type == FSETLOCKING_INTERNAL);
   return old_state;
 }
 
