@@ -34,11 +34,11 @@
 #include <stdio_ext.h>
 #include <stdlib.h>
 
+#include "include/local.h"
+
 #ifdef __cplusplus
 extern "C" {
 #endif
-
-#include "local.h"
 
 size_t __fbufsize(FILE* fp) {
   return fp->_bf._size;

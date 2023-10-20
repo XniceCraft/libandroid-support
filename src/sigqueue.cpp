@@ -31,14 +31,14 @@
 
 #if __ANDROID_API__ < 23
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 #include <signal.h>
 #include <string.h>
 #include <sys/types.h>
 #include <unistd.h>
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 int ___rt_sigqueueinfo(pid_t, int, siginfo_t*);
 
@@ -57,3 +57,4 @@ int sigqueue(pid_t pid, int signo, const sigval value) {
 #ifdef __cplusplus
 }
 #endif
+#endif /*__ANDROID_API__*/

@@ -18,10 +18,6 @@
 
 #if __ANDROID_API__ < 24
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 #include <arpa/inet.h>
 #include <cstring>
 #include <errno.h>
@@ -37,6 +33,11 @@ extern "C" {
 
 #include "include/LocalArray.h"
 #include "include/ScopedFd.h"
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 
 // Android (bionic) doesn't have getifaddrs(3)/freeifaddrs(3).
 // We fake it here, so java_net_NetworkInterface.cpp can use that API
