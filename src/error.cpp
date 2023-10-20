@@ -26,12 +26,20 @@
  * SUCH DAMAGE.
  */
 
+#include <android/api-level.h>
+
+#if __ANDROID_API__ < 23
+
 #include <error.h>
 
 #include <errno.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 unsigned int error_message_count = 0;
 void (*error_print_progname)(void) = NULL;
@@ -94,3 +102,9 @@ void error_at_line(int status, int error, const char* file, unsigned int line, c
 
   __error_tail(status, error);
 }
+
+#ifdef __cplusplus
+}
+#endif
+
+#endif /*__ANDROID_API__*/
