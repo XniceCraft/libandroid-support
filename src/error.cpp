@@ -30,16 +30,16 @@
 
 #if __ANDROID_API__ < 23
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #include <error.h>
 
 #include <errno.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-
-#ifdef __cplusplus
-extern "C" {
-#endif
 
 unsigned int error_message_count = 0;
 void (*error_print_progname)(void) = NULL;

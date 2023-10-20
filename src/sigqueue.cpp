@@ -31,66 +31,29 @@
 
 #if __ANDROID_API__ < 23
 
-#include <stdio_ext.h>
-#include <stdlib.h>
-
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-#include "local.h"
+#include <signal.h>
+#include <string.h>
+#include <sys/types.h>
+#include <unistd.h>
 
-size_t __fbufsize(FILE* fp) {
-  return fp->_bf._size;
-}
+int ___rt_sigqueueinfo(pid_t, int, siginfo_t*);
 
-int __freadable(FILE* fp) {
-  return (fp->_flags & (__SRD|__SRW)) != 0;
-}
+int sigqueue(pid_t pid, int signo, const sigval value) {
+  siginfo_t info;
+  memset(&info, 0, sizeof(siginfo_t));
+  info.si_signo = signo;
+  info.si_code = SI_QUEUE;
+  info.si_pid = getpid();
+  info.si_uid = getuid();
+  info.si_value = value;
 
-int __fwritable(FILE* fp) {
-  return (fp->_flags & (__SWR|__SRW)) != 0;
-}
-
-int __flbf(FILE* fp) {
-  return (fp->_flags & __SLBF) != 0;
-}
-
-void __fpurge(FILE* fp) {
-  fpurge(fp);
-}
-
-size_t __fpending(FILE* fp) {
-  return fp->_p - fp->_bf._base;
-}
-
-void _flushlbf() {
-  // If we flush all streams, we know we've flushed all the line-buffered streams.
-  fflush(NULL);
-}
-
-int __fsetlocking(FILE* fp, int type) {
-  int old_state = _EXT(fp)->_stdio_handles_locking ? FSETLOCKING_INTERNAL : FSETLOCKING_BYCALLER;
-  if (type == FSETLOCKING_QUERY) {
-    return old_state;
-  }
-  _EXT(fp)->_stdio_handles_locking = (type == FSETLOCKING_INTERNAL);
-  return old_state;
-}
-
-void clearerr_unlocked(FILE* fp) {
-  return __sclearerr(fp);
-}
-
-int feof_unlocked(FILE* fp) {
-  return __sfeof(fp);
-}
-
-int ferror_unlocked(FILE* fp) {
-  return __sferror(fp);
+  return ___rt_sigqueueinfo(pid, signo, &info);
 }
 
 #ifdef __cplusplus
 }
-#endif
 #endif

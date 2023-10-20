@@ -1,6 +1,5 @@
-
 /*
- * Copyright (C) 2014 The Android Open Source Project
+ * Copyright (C) 2013 The Android Open Source Project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,70 +26,39 @@
  * SUCH DAMAGE.
  */
 
-#include <android/api-level.h>
+#ifndef _PRIVATE_BIONIC_ASM_H_
+#define _PRIVATE_BIONIC_ASM_H_
 
-#if __ANDROID_API__ < 23
+#include <asm-generic/unistd.h> /* For system call numbers. */
+#define MAX_ERRNO 4095  /* For recognizing system call error returns. */
 
-#include <stdio_ext.h>
-#include <stdlib.h>
+#define __bionic_asm_custom_entry(f)
+#define __bionic_asm_custom_end(f)
+#define __bionic_asm_function_type @function
 
-#ifdef __cplusplus
-extern "C" {
-#endif
+#include "machine/asm.h"
 
-#include "local.h"
+#define ENTRY(f) \
+    .text; \
+    .globl f; \
+    .align __bionic_asm_align; \
+    .type f, __bionic_asm_function_type; \
+    f: \
+    __bionic_asm_custom_entry(f); \
+    .cfi_startproc \
 
-size_t __fbufsize(FILE* fp) {
-  return fp->_bf._size;
-}
+#define END(f) \
+    .cfi_endproc; \
+    .size f, .-f; \
+    __bionic_asm_custom_end(f) \
 
-int __freadable(FILE* fp) {
-  return (fp->_flags & (__SRD|__SRW)) != 0;
-}
+/* Like ENTRY, but with hidden visibility. */
+#define ENTRY_PRIVATE(f) \
+    ENTRY(f); \
+    .hidden f \
 
-int __fwritable(FILE* fp) {
-  return (fp->_flags & (__SWR|__SRW)) != 0;
-}
+#define ALIAS_SYMBOL(alias, original) \
+    .globl alias; \
+    .equ alias, original
 
-int __flbf(FILE* fp) {
-  return (fp->_flags & __SLBF) != 0;
-}
-
-void __fpurge(FILE* fp) {
-  fpurge(fp);
-}
-
-size_t __fpending(FILE* fp) {
-  return fp->_p - fp->_bf._base;
-}
-
-void _flushlbf() {
-  // If we flush all streams, we know we've flushed all the line-buffered streams.
-  fflush(NULL);
-}
-
-int __fsetlocking(FILE* fp, int type) {
-  int old_state = _EXT(fp)->_stdio_handles_locking ? FSETLOCKING_INTERNAL : FSETLOCKING_BYCALLER;
-  if (type == FSETLOCKING_QUERY) {
-    return old_state;
-  }
-  _EXT(fp)->_stdio_handles_locking = (type == FSETLOCKING_INTERNAL);
-  return old_state;
-}
-
-void clearerr_unlocked(FILE* fp) {
-  return __sclearerr(fp);
-}
-
-int feof_unlocked(FILE* fp) {
-  return __sfeof(fp);
-}
-
-int ferror_unlocked(FILE* fp) {
-  return __sferror(fp);
-}
-
-#ifdef __cplusplus
-}
-#endif
-#endif
+#endif /* _PRIVATE_BIONIC_ASM_H_ */
