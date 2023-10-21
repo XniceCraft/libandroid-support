@@ -16,7 +16,7 @@
 
 #include <android/api-level.h>
 
-if __ANDROID_API__ < 24
+#if __ANDROID_API__ < 24
 
 extern "C" const char* strchrnul(const char* s, int ch) {
   while (*s && *s != ch) {
