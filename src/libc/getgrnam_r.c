@@ -21,4 +21,16 @@ int getgrnam_r(const char *name, struct group *grp, char *buf, size_t buflen, st
 	*result = NULL;
 	return -1;
 }
-#endif
+
+#endif /*__ANDROID_API__*/
+
+#if __ANDROID_API__ < 26
+
+/* These function are dummy function.
+   Because they aren't implemented on older android */
+
+struct group* getgrent(void) return NULL;
+void setgrent(void) return;
+void endgrent(void) return;
+
+#endif /*__ANDROID_API__*/
