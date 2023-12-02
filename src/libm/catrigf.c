@@ -40,14 +40,11 @@
  * a few comments on the right of declarations remain.
  */
 
-#include <android/api-level.h>
-#if __ANDROID_API__ < 23
-
 #include <sys/cdefs.h>
 #include <complex.h>
 #include <float.h>
 
-#include <math.h>
+#include "math.h"
 #include "math_private.h"
 
 #undef isinf
@@ -394,5 +391,3 @@ catanf(float complex z)
 
 	return (CMPLXF(cimagf(w), crealf(w)));
 }
-
-#endif /*__ANDROID_API__*/

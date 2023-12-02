@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2014 The Android Open Source Project
+ * Copyright (C) 2016 The Android Open Source Project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -26,29 +26,48 @@
  * SUCH DAMAGE.
  */
 
-#include <signal.h>
-#include <string.h>
-#include <sys/types.h>
 #include <unistd.h>
 
-#ifdef __cplusplus
-extern "C" {
-#endif
+#include <errno.h>
+#include <fcntl.h>
+#include <string.h>
 
-int ___rt_sigqueueinfo(pid_t, int, siginfo_t*);
+int lockf64(int fd, int cmd, off64_t length) {
+  // Translate POSIX lockf into fcntl.
+  struct flock64 fl;
+  memset(&fl, 0, sizeof(fl));
+  fl.l_whence = SEEK_CUR;
+  fl.l_start = 0;
+  fl.l_len = length;
 
-int sigqueue(pid_t pid, int signo, const sigval value) {
-  siginfo_t info;
-  memset(&info, 0, sizeof(siginfo_t));
-  info.si_signo = signo;
-  info.si_code = SI_QUEUE;
-  info.si_pid = getpid();
-  info.si_uid = getuid();
-  info.si_value = value;
+  if (cmd == F_ULOCK) {
+    fl.l_type = F_UNLCK;
+    cmd = F_SETLK64;
+    return fcntl(fd, F_SETLK64, &fl);
+  }
 
-  return ___rt_sigqueueinfo(pid, signo, &info);
+  if (cmd == F_LOCK) {
+    fl.l_type = F_WRLCK;
+    return fcntl(fd, F_SETLKW64, &fl);
+  }
+
+  if (cmd == F_TLOCK) {
+    fl.l_type = F_WRLCK;
+    return fcntl(fd, F_SETLK64, &fl);
+  }
+
+  if (cmd == F_TEST) {
+    fl.l_type = F_RDLCK;
+    if (fcntl(fd, F_GETLK64, &fl) == -1) return -1;
+    if (fl.l_type == F_UNLCK || fl.l_pid == getpid()) return 0;
+    errno = EACCES;
+    return -1;
+  }
+
+  errno = EINVAL;
+  return -1;
 }
 
-#ifdef __cplusplus
+int lockf(int fd, int cmd, off_t length) {
+  return lockf64(fd, cmd, length);
 }
-#endif

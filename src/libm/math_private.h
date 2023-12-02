@@ -17,7 +17,8 @@
 #define	_MATH_PRIVATE_H_
 
 #include <sys/types.h>
-#include <endian.h>
+#include <sys/endian.h>
+#include <math.h>
 
 /*
  * The original fdlibm code used statements like:

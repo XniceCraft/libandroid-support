@@ -39,15 +39,12 @@
  * a few comments on the right of declarations remain.
  */
 
-#include <android/api-level.h>
-#if __ANDROID_API__ < 26
-
 #include <sys/cdefs.h>
 #include <complex.h>
 #include <float.h>
 
 #include "invtrig.h"
-#include <math.h>
+#include "math.h"
 #include "math_private.h"
 
 #undef isinf
@@ -416,5 +413,3 @@ catanl(long double complex z)
 	w = catanhl(CMPLXL(cimagl(z), creall(z)));
 	return (CMPLXL(cimagl(w), creall(w)));
 }
-
-#endif /*__ANDROID_API__*/

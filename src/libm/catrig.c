@@ -1,5 +1,5 @@
 /*-
- * SPDX-License-Identifier: BSD-2-Clause-FreeBSD
+ * SPDX-License-Identifier: BSD-2-Clause
  *
  * Copyright (c) 2012 Stephen Montgomery-Smith <stephen@FreeBSD.ORG>
  * All rights reserved.
@@ -26,16 +26,11 @@
  * SUCH DAMAGE.
  */
 
-#include <android/api-level.h>
-#if __ANDROID_API__ < 23
-
 #include <sys/cdefs.h>
-__FBSDID("$FreeBSD$");
-
 #include <complex.h>
 #include <float.h>
 
-#include <math.h>
+#include "math.h"
 #include "math_private.h"
 
 #undef isinf
@@ -63,7 +58,7 @@ SQRT_MIN =		0x1p-511;		/* >= sqrt(DBL_MIN) */
 static const volatile double
 pio2_lo =		6.1232339957367659e-17;	/*  0x11a62633145c07.0p-106 */
 static const volatile float
-tiny =			0x1p-100;
+tiny =			0x1p-100; 
 
 static double complex clog_for_large_values(double complex z);
 
@@ -656,5 +651,3 @@ __weak_reference(casin, casinl);
 __weak_reference(catanh, catanhl);
 __weak_reference(catan, catanl);
 #endif
-
-#endif /*__ANDROID_API__*/
