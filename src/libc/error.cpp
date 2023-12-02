@@ -26,10 +26,6 @@
  * SUCH DAMAGE.
  */
 
-#include <android/api-level.h>
-
-#if __ANDROID_API__ < 23
-
 #include <error.h>
 
 #include <errno.h>
@@ -106,5 +102,3 @@ void error_at_line(int status, int error, const char* file, unsigned int line, c
 #ifdef __cplusplus
 }
 #endif
-
-#endif /*__ANDROID_API__*/

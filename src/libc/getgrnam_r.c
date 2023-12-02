@@ -1,8 +1,5 @@
 #include <string.h>
 #include <grp.h>
-#include <android/api-level.h>
-
-#if __ANDROID_API__ < 24
 
 // Credit: https://github.com/chombourger/android-udev/blob/c78aaf59cdc4378346eb084e9cdc02ca46bc389a/android/missing.c
 int getgrnam_r(const char *name, struct group *grp, char *buf, size_t buflen, struct group **result)
@@ -21,5 +18,3 @@ int getgrnam_r(const char *name, struct group *grp, char *buf, size_t buflen, st
 	*result = NULL;
 	return -1;
 }
-
-#endif /*__ANDROID_API__*/

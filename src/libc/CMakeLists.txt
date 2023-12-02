@@ -1,27 +1,24 @@
 include(CheckSymbolExists)
 
 set(LIBC_SRCS
-    lockf.cpp
-    error.cpp
-    getgrnam_r.c
-    ifaddrs.cpp
     include/LocalArray.h
     include/ScopedFd.h
     include/bionic_asm.h
     include/fileext.h
     include/local.h
     include/wcio.h
-    stdio_ext.cpp
-    strchrnul.cpp
     __set_errno.cpp
 )
 
+# Legacy feature that avalable at API 23 or higher
 check_symbol_exists(sigqueue signal.h HAVE_SIGQUEUE)
-
-if(NOT ${HAVE_SIGQUEUE})
+if(NOT HAVE_SIGQUEUE)
     set(LIBC_SRCS
         ${LIBC_SRCS}
+        error.cpp
         sigqueue.cpp
+        stdio_ext.cpp
+        __gnu_basename.cpp
     )
     if(CMAKE_SYSTEM_PROCESSOR STREQUAL "aarch64")
         set(LIBC_SRCS
@@ -64,6 +61,18 @@ if(NOT ${HAVE_SIGQUEUE})
     else()
         message(FATAL_ERROR "Unsupported CPU Architecture")
     endif()
+endif()
+
+# Legacy feature that avalable at API 24 or higher
+check_symbol_exists(lockf bits/lockf.h HAVE_LOCKF)
+if(NOT HAVE_LOCKF)
+    set(LIBC_SRCS
+        ${LIBC_SRCS}
+        lockf.cpp
+        getgrnam_r.c
+        ifaddrs.cpp
+        strchrnul.cpp
+    )
 endif()
 
 add_library(libc OBJECT ${LIBC_SRCS})
