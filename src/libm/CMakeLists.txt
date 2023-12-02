@@ -25,6 +25,7 @@ if(NOT HAVE_CACOS)
         s_ctanh.c
         s_ctanhf.c
         k_exp.c
+        k_expf.c
         s_cexp.c
         s_cexpf.c
         w_cabs.c
