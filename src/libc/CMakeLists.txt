@@ -16,6 +16,7 @@ if(NOT HAVE_SIGQUEUE)
     set(LIBC_SRCS
         ${LIBC_SRCS}
         error.cpp
+        pty.c
         sigqueue.cpp
         stdio_ext.cpp
         __gnu_basename.cpp
