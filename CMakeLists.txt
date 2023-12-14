@@ -27,7 +27,7 @@ option(ENABLE_MUSL_MULTIBYTE "Compile musl-multibyte" ON)
 option(BUILD_SHARED_LIBS "Build shared library" ON)
 option(BUILD_STATIC_LIBS "Build static library" ON)
 option(USE_STATIC_LIBCXX "Link libc++ statically" OFF)
-set(__ANDROID_API__ 21)
+option(__ANDROID_API__ "Android API" 21)
 
 set(LIBANDROID_SUPPORT_OBJECTS)
 if(ENABLE_LIBC)
