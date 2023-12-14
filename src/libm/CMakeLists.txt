@@ -9,11 +9,10 @@ set(LIBM_SRCS
     math_private.h
 )
 
-check_symbol_exists(cacos complex.h HAVE_CACOS)
-check_symbol_exists(clog complex.h HAVE_CLOG)
 check_symbol_exists(cabsl complex.h HAVE_CABSL)
 
-if(NOT HAVE_CACOS)
+# Android 6.0+ functionality
+if(__ANDROID_API__ LESS 23)
     set(LIBM_SRCS
         ${LIBM_SRCS}
         catrig.c
@@ -49,7 +48,8 @@ if(NOT HAVE_CACOS)
     )
 endif()
 
-if(NOT HAVE_CLOG)
+# Android 8.0+ functionality
+if(__ANDROID_API__ LESS 26)
      set(LIBM_SRCS
         ${LIBM_SRCS}
         catrigl.c

@@ -1,30 +1,56 @@
-include(CheckSymbolExists)
-
 set(LIBC_SRCS
+    libc_logging.cpp
     include/LocalArray.h
     include/ScopedFd.h
-    include/bionic_asm.h
-    include/fileext.h
-    include/local.h
-    include/wcio.h
+    include/private/bionic_asm.h
+    stdio/local.h
+    stdio/wcio.h
     __set_errno.cpp
 )
 
-# Legacy feature that avalable at API 23 or higher
-check_symbol_exists(sigqueue signal.h HAVE_SIGQUEUE)
-if(NOT HAVE_SIGQUEUE)
+# Android 6.0+ functionality
+if(__ANDROID_API__ LESS 23)
     set(LIBC_SRCS
         ${LIBC_SRCS}
-        error.cpp
+        clock_getcpuclockid.cpp
+        dirent-23.cpp
+        lfs64_support.cpp
+        locale.cpp
+        mempcpy.cpp
+        mkfifoat.c
         pty.c
+        posix_madvise.cpp
         sigqueue.cpp
-        stdio_ext.cpp
+        sigtimedwait.cpp
+        sigwaitinfo.cpp
+        strerror_r.cpp
+        sysinfo.cpp
+        stdio/flags.c
+        stdio/fmemopen.cpp
+        stdio/mktemp.c
+        stdio/open_memstream.c
+        stdio/open_wmemstream.c
+        stdio/stdio.cpp
+        stdio/stdio_ext-23.cpp
+        stdlib/lcong48.c
+        wmempcpy.cpp
         __gnu_basename.cpp
     )
+
     if(CMAKE_SYSTEM_PROCESSOR STREQUAL "aarch64")
         set(LIBC_SRCS
             ${LIBC_SRCS}
             arch-arm64/___rt_sigqueueinfo.S
+            arch-arm64/__rt_sigtimedwait.S
+            arch-arm64/adjtimex.S
+            arch-arm64/clock_adjtime.S
+            arch-arm64/pread.S
+            arch-arm64/pread64.S
+            arch-arm64/process_vm_readv.S
+            arch-arm64/process_vm_writev.S
+            arch-arm64/pwrite.S
+            arch-arm64/pwrite64.S
+            arch-arm64/sethostname.S
             arch-arm64/machine/asm.h
         )
     elseif(CMAKE_SYSTEM_PROCESSOR STREQUAL "arm")
@@ -64,25 +90,38 @@ if(NOT HAVE_SIGQUEUE)
     endif()
 endif()
 
-# Legacy feature that avalable at API 24 or higher
-check_symbol_exists(lockf bits/lockf.h HAVE_LOCKF)
-if(NOT HAVE_LOCKF)
+# Android 7.0+ functionality
+if(__ANDROID_API__ LESS 24)
     set(LIBC_SRCS
         ${LIBC_SRCS}
+        bionic_netlink.cpp
+        bionic_netlink.h
         lockf.cpp
-        getgrnam_r.c
         ifaddrs.cpp
+        net_if.cpp
+        pthread_barrier.cpp
+        scandirat.cpp
+        stdio/stdio_ext-24.cpp
         strchrnul.cpp
+    )
+endif()
+
+# Android 10+ functionality
+if(__ANDROID_API__ LESS 29)
+    set(LIBC_SRCS
+        ${LIBC_SRCS}
+        reallocarray.c
     )
 endif()
 
 add_library(libc OBJECT ${LIBC_SRCS})
 target_include_directories(libc PRIVATE include)
+target_include_directories(libc PRIVATE include/private)
 list(APPEND LIBANDROID_SUPPORT_OBJECTS $<TARGET_OBJECTS:libc>)
 set(LIBANDROID_SUPPORT_OBJECTS ${LIBANDROID_SUPPORT_OBJECTS} PARENT_SCOPE)
 
-# Include dir for sigqueue
-if(NOT HAVE_SIGQUEUE)
+# Include dir (architecture specific)
+if(__ANDROID_API__ LESS 23)
     if(CMAKE_SYSTEM_PROCESSOR STREQUAL "aarch64")
         target_include_directories(libc PRIVATE arch-arm64)
     elseif(CMAKE_SYSTEM_PROCESSOR STREQUAL "arm")

@@ -30,11 +30,6 @@
 #include "include/LocalArray.h"
 #include "include/ScopedFd.h"
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
-
 // Android (bionic) doesn't have getifaddrs(3)/freeifaddrs(3).
 // We fake it here, so java_net_NetworkInterface.cpp can use that API
 // with all the non-portable code being in this file.
@@ -70,7 +65,7 @@ struct ifaddrs {
     // Sadly, we can't keep the interface index for portability with BSD.
     // We'll have to keep the name instead, and re-query the index when
     // we need it later.
-    bool setNameAndFlagsByIndex(int interfaceIndex) {
+    __LIBC_HIDDEN__ bool setNameAndFlagsByIndex(int interfaceIndex) {
         // Get the name.
         char buf[IFNAMSIZ];
         char* name = if_indextoname(interfaceIndex, buf);
@@ -100,7 +95,7 @@ struct ifaddrs {
     // sockaddr_in or sockaddr_in6 bytes as the payload. We need to
     // stitch the two bits together into the sockaddr that's part of
     // our portable interface.
-    void setAddress(int family, void* data, size_t byteCount) {
+    __LIBC_HIDDEN__ void setAddress(int family, void* data, size_t byteCount) {
         // Set the address proper...
         sockaddr_storage* ss = new sockaddr_storage;
         memset(ss, 0, sizeof(*ss));
@@ -112,7 +107,7 @@ struct ifaddrs {
 
     // Netlink gives us the prefix length as a bit count. We need to turn
     // that into a BSD-compatible netmask represented by a sockaddr*.
-    void setNetmask(int family, size_t prefixLength) {
+    __LIBC_HIDDEN__ void setNetmask(int family, size_t prefixLength) {
         // ...and work out the netmask from the prefix length.
         sockaddr_storage* ss = new sockaddr_storage;
         memset(ss, 0, sizeof(*ss));
@@ -127,7 +122,7 @@ struct ifaddrs {
 
     // Returns a pointer to the first byte in the address data (which is
     // stored in network byte order).
-    uint8_t* sockaddrBytes(int family, sockaddr_storage* ss) {
+    __LIBC_HIDDEN__ uint8_t* sockaddrBytes(int family, sockaddr_storage* ss) {
         if (family == AF_INET) {
             sockaddr_in* ss4 = reinterpret_cast<sockaddr_in*>(ss);
             return reinterpret_cast<uint8_t*>(&ss4->sin_addr);
@@ -150,17 +145,17 @@ struct addrReq_struct {
     ifaddrmsg msg;
 };
 
-bool sendNetlinkMessage(int fd, const void* data, size_t byteCount) {
+__LIBC_HIDDEN__ bool sendNetlinkMessage(int fd, const void* data, size_t byteCount) {
     ssize_t sentByteCount = TEMP_FAILURE_RETRY(send(fd, data, byteCount, 0));
     return (sentByteCount == static_cast<ssize_t>(byteCount));
 }
 
-ssize_t recvNetlinkMessage(int fd, char* buf, size_t byteCount) {
+__LIBC_HIDDEN__ ssize_t recvNetlinkMessage(int fd, char* buf, size_t byteCount) {
     return TEMP_FAILURE_RETRY(recv(fd, buf, byteCount, 0));
 }
 
 // Source-compatible with the BSD function.
-int getifaddrs(ifaddrs** result) {
+extern "C" int getifaddrs(ifaddrs** result) {
     // Simplify cleanup for callers.
     *result = NULL;
 
@@ -222,10 +217,6 @@ int getifaddrs(ifaddrs** result) {
 }
 
 // Source-compatible with the BSD function.
-void freeifaddrs(ifaddrs* addresses) {
+extern "C" void freeifaddrs(ifaddrs* addresses) {
     delete addresses;
 }
-
-#ifdef __cplusplus
-}
-#endif

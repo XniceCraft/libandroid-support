@@ -35,12 +35,61 @@
  * in particular, macros and private variables.
  */
 
-#include <sys/cdefs.h>
+#ifndef __BIONIC_STDIO_LOCAL_H__
+#define __BIONIC_STDIO_LOCAL_H__
+
+#include <pthread.h>
+#include <stdbool.h>
 #include <wchar.h>
 #include "wcio.h"
-#include "fileext.h"
 
 __BEGIN_DECLS
+
+struct __sfileext {
+  // ungetc buffer.
+  struct __sbuf _ub;
+
+  // Wide char io status.
+  struct wchar_io_data _wcio;
+
+  // File lock.
+  pthread_mutex_t _lock;
+
+  // __fsetlocking support.
+  bool _caller_handles_locking;
+
+  // Equivalent to `_seek` but for _FILE_OFFSET_BITS=64.
+  // Callers should use this but fall back to `__sFILE::_seek`.
+  off64_t (*_seek64)(void*, off64_t, int);
+};
+
+#if defined(__cplusplus)
+#define _EXT(fp) reinterpret_cast<__sfileext*>((fp)->_ext._base)
+#else
+#define _EXT(fp) ((struct __sfileext *)((fp)->_ext._base))
+#endif
+
+#define _UB(fp) _EXT(fp)->_ub
+#define _FLOCK(fp)  _EXT(fp)->_lock
+
+#define _FILEEXT_INIT(fp) \
+do { \
+	_UB(fp)._base = NULL; \
+	_UB(fp)._size = 0; \
+	WCIO_INIT(fp); \
+	pthread_mutexattr_t attr; \
+	pthread_mutexattr_init(&attr); \
+	pthread_mutexattr_settype(&attr, PTHREAD_MUTEX_RECURSIVE); \
+	pthread_mutex_init(&_FLOCK(fp), &attr); \
+	pthread_mutexattr_destroy(&attr); \
+	_EXT(fp)->_caller_handles_locking = false; \
+} while (0)
+
+#define _FILEEXT_SETUP(f, fext) \
+do { \
+	(f)->_ext._base = (unsigned char *)(fext); \
+	_FILEEXT_INIT(f); \
+} while (0)
 
 /*
  * Android <= KitKat had getc/putc macros in <stdio.h> that referred
@@ -55,10 +104,8 @@ __LIBC32_LEGACY_PUBLIC__ int __srefill(FILE*);
 __LIBC32_LEGACY_PUBLIC__ int __swsetup(FILE*);
 
 /* These were referenced by a couple of different pieces of middleware and the Crystax NDK. */
-__LIBC32_LEGACY_PUBLIC__ extern int __sdidinit;
 __LIBC32_LEGACY_PUBLIC__ int __sflags(const char*, int*);
 __LIBC32_LEGACY_PUBLIC__ FILE* __sfp(void);
-__LIBC32_LEGACY_PUBLIC__ void __sinit(void);
 __LIBC32_LEGACY_PUBLIC__ void __smakebuf(FILE*);
 
 /* These are referenced by the Greed for Glory franchise. */
@@ -71,8 +118,8 @@ __LIBC32_LEGACY_PUBLIC__ int _fwalk(int (*)(FILE *));
 
 #pragma GCC visibility push(hidden)
 
+off64_t __sseek64(void*, off64_t, int);
 int	__sflush_locked(FILE *);
-void	_cleanup(void);
 int	__swhatbuf(FILE *, size_t *, int *);
 wint_t __fgetwc_unlock(FILE *);
 wint_t	__ungetwc(wint_t, FILE *);
@@ -81,15 +128,12 @@ int	__svfscanf(FILE * __restrict, const char * __restrict, __va_list);
 int	__vfwprintf(FILE * __restrict, const wchar_t * __restrict, __va_list);
 int	__vfwscanf(FILE * __restrict, const wchar_t * __restrict, __va_list);
 
-extern void __atexit_register_cleanup(void (*)(void));
-
 /*
  * Return true if the given FILE cannot be written now.
  */
 #define	cantwrite(fp) \
 	((((fp)->_flags & __SWR) == 0 || (fp)->_bf._base == NULL) && \
 	 __swsetup(fp))
-
 /*
  * Test whether the given stdio file has an active ungetc buffer;
  * release such a buffer, without restoring ordinary unread data.
@@ -100,7 +144,6 @@ extern void __atexit_register_cleanup(void (*)(void));
 		free(_UB(fp)._base); \
 	_UB(fp)._base = NULL; \
 }
-
 /*
  * test for an fgetln() buffer.
  */
@@ -110,8 +153,8 @@ extern void __atexit_register_cleanup(void (*)(void));
 	(fp)->_lb._base = NULL; \
 }
 
-#define FLOCKFILE(fp)   if (_EXT(fp)->_stdio_handles_locking) flockfile(fp)
-#define FUNLOCKFILE(fp) if (_EXT(fp)->_stdio_handles_locking) funlockfile(fp)
+#define FLOCKFILE(fp)   if (!_EXT(fp)->_caller_handles_locking) flockfile(fp)
+#define FUNLOCKFILE(fp) if (!_EXT(fp)->_caller_handles_locking) funlockfile(fp)
 
 #define FLOATING_POINT
 #define PRINTF_WIDE_CHAR
@@ -122,7 +165,6 @@ extern void __atexit_register_cleanup(void (*)(void));
 #define __sfeof(p)     (((p)->_flags & __SEOF) != 0)
 #define __sferror(p)   (((p)->_flags & __SERR) != 0)
 #define __sclearerr(p) ((void)((p)->_flags &= ~(__SERR|__SEOF)))
-#define __sfileno(p)   ((p)->_file)
 #if !defined(__cplusplus)
 #define __sgetc(p) (--(p)->_r < 0 ? __srget(p) : (int)(*(p)->_p++))
 static __inline int __sputc(int _c, FILE* _p) {
@@ -134,11 +176,8 @@ static __inline int __sputc(int _c, FILE* _p) {
 }
 #endif
 
-/* OpenBSD declares these in fvwrite.h but we want to ensure they're hidden. */
-struct __suio;
-extern int __sfvwrite(FILE *, struct __suio *);
-wint_t __fputwc_unlock(wchar_t wc, FILE *fp);
-
 #pragma GCC visibility pop
 
 __END_DECLS
+
+#endif

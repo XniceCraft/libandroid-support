@@ -2,8 +2,8 @@
 
 #include <private/bionic_asm.h>
 
-ENTRY(___rt_sigqueueinfo)
-    mov     x8, __NR_rt_sigqueueinfo
+ENTRY(preadv)
+    mov     x8, __NR_preadv
     svc     #0
 
     cmn     x0, #(MAX_ERRNO + 1)
@@ -11,5 +11,6 @@ ENTRY(___rt_sigqueueinfo)
     b.hi    __set_errno_internal
 
     ret
-END(___rt_sigqueueinfo)
-.hidden ___rt_sigqueueinfo
+END(preadv)
+
+ALIAS_SYMBOL(preadv64, preadv)

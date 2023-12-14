@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2014 The Android Open Source Project
+ * Copyright (C) 2008 The Android Open Source Project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -26,22 +26,30 @@
  * SUCH DAMAGE.
  */
 
-#include <signal.h>
-#include <string.h>
+#include <dirent.h>
 #include <sys/types.h>
-#include <sys/cdefs.h>
 #include <unistd.h>
 
-__LIBC_HIDDEN__ extern "C" int ___rt_sigqueueinfo(pid_t, int, siginfo_t*);
+#include "private/ScopedPthreadMutexLocker.h"
 
-extern "C" int sigqueue(pid_t pid, int signo, const sigval value) {
-  siginfo_t info;
-  memset(&info, 0, sizeof(siginfo_t));
-  info.si_signo = signo;
-  info.si_code = SI_QUEUE;
-  info.si_pid = getpid();
-  info.si_uid = getuid();
-  info.si_value = value;
+struct DIR {
+  int fd_;
+  size_t available_bytes_;
+  dirent* next_;
+  pthread_mutex_t mutex_;
+  dirent buff_[15];
+  long current_pos_;
+};
 
-  return ___rt_sigqueueinfo(pid, signo, &info);
+extern "C" void seekdir(DIR* d, long offset) {
+  ScopedPthreadMutexLocker locker(&d->mutex_);
+  off_t ret = lseek(d->fd_, offset, SEEK_SET);
+  if (ret != -1L) {
+    d->available_bytes_ = 0;
+    d->current_pos_ = ret;
+  }
+}
+
+extern "C" long telldir(DIR* d) {
+  return d->current_pos_;
 }

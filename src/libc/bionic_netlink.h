@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2014 The Android Open Source Project
+ * Copyright (C) 2016 The Android Open Source Project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -26,22 +26,34 @@
  * SUCH DAMAGE.
  */
 
-#include <signal.h>
-#include <string.h>
+#ifndef BIONIC_NETLINK_H
+#define BIONIC_NETLINK_H
+
 #include <sys/types.h>
-#include <sys/cdefs.h>
-#include <unistd.h>
 
-__LIBC_HIDDEN__ extern "C" int ___rt_sigqueueinfo(pid_t, int, siginfo_t*);
+#include <linux/netlink.h>
+#include <linux/rtnetlink.h>
 
-extern "C" int sigqueue(pid_t pid, int signo, const sigval value) {
-  siginfo_t info;
-  memset(&info, 0, sizeof(siginfo_t));
-  info.si_signo = signo;
-  info.si_code = SI_QUEUE;
-  info.si_pid = getpid();
-  info.si_uid = getuid();
-  info.si_value = value;
+struct nlmsghdr;
 
-  return ___rt_sigqueueinfo(pid, signo, &info);
-}
+class NetlinkConnection {
+ public:
+  NetlinkConnection();
+  ~NetlinkConnection();
+
+  bool SendRequest(int type);
+  bool ReadResponses(void callback(void*, nlmsghdr*), void* context);
+
+ private:
+  int fd_;
+  char* data_;
+  size_t size_;
+};
+
+#if !defined(__clang__)
+// GCC gets confused by NLMSG_DATA and doesn't realize that the old-style
+// cast is from a system header and should be ignored.
+#pragma GCC diagnostic ignored "-Wold-style-cast"
+#endif
+
+#endif
