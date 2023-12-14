@@ -2,15 +2,14 @@
 
 #include <private/bionic_asm.h>
 
-ENTRY(pwrite64)
-    mov     x8, __NR_pwrite64
+ENTRY(preadv)
+    mov     x8, __NR_preadv
     svc     #0
 
     cmn     x0, #(MAX_ERRNO + 1)
     cneg    x0, x0, hi
     b.hi    __set_errno_internal
-
     ret
-END(pwrite64)
+END(preadv)
 
-ALIAS_SYMBOL(pwrite, pwrite64)
+ALIAS_SYMBOL(preadv64, preadv)

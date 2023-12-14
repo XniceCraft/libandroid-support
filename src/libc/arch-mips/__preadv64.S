@@ -2,10 +2,10 @@
 
 #include <private/bionic_asm.h>
 
-ENTRY(___rt_sigqueueinfo)
+ENTRY(__preadv64)
     .set noreorder
     .cpload t9
-    li v0, __NR_rt_sigqueueinfo
+    li v0, __NR_preadv
     syscall
     bnez a3, 1f
     move a0, v0
@@ -16,5 +16,4 @@ ENTRY(___rt_sigqueueinfo)
     j t9
     nop
     .set reorder
-END(___rt_sigqueueinfo)
-.hidden ___rt_sigqueueinfo
+END(__preadv64)
