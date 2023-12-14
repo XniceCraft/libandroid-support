@@ -32,6 +32,8 @@
 
 #include "private/bionic_futex.h"
 
+extern "C" {
+
 int pthread_barrierattr_init(pthread_barrierattr_t* attr) {
   *attr = 0;
   return 0;
@@ -54,6 +56,8 @@ int pthread_barrierattr_setpshared(pthread_barrierattr_t* attr, int pshared) {
     *attr &= ~1;
   }
   return 0;
+}
+
 }
 
 enum BarrierState {
@@ -87,6 +91,8 @@ static_assert(alignof(pthread_barrier_t) >= 4,
 static inline pthread_barrier_internal_t* __get_internal_barrier(pthread_barrier_t* barrier) {
   return reinterpret_cast<pthread_barrier_internal_t*>(barrier);
 }
+
+extern "C" {
 
 int pthread_barrier_init(pthread_barrier_t* barrier_interface, const pthread_barrierattr_t* attr,
                          unsigned count) {
@@ -180,4 +186,6 @@ int pthread_barrier_destroy(pthread_barrier_t* barrier_interface) {
   }
   barrier->init_count = 0;
   return 0;
+}
+
 }

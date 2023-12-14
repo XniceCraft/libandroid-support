@@ -47,6 +47,8 @@ static inline pthread_spinlock_internal_t* __get_internal_spinlock(pthread_spinl
   return reinterpret_cast<pthread_spinlock_internal_t*>(lock);
 }
 
+extern "C" {
+
 int pthread_spin_init(pthread_spinlock_t* lock_interface, int pshared) {
   pthread_spinlock_internal_t* lock = __get_internal_spinlock(lock_interface);
   lock->lock.init(pshared);
@@ -78,4 +80,6 @@ int pthread_spin_unlock(pthread_spinlock_t* lock_interface) {
   pthread_spinlock_internal_t* lock = __get_internal_spinlock(lock_interface);
   lock->lock.unlock();
   return 0;
+}
+
 }
