@@ -101,8 +101,8 @@ int pthread_barrier_init(pthread_barrier_t* barrier_interface, const pthread_bar
     return EINVAL;
   }
   barrier->init_count = count;
-  atomic_init(&barrier->state, WAIT);
-  atomic_init(&barrier->wait_count, 0);
+  atomic_init(&barrier->state, (BarrierState)WAIT);
+  atomic_init(&barrier->wait_count, (unsigned int)0);
   barrier->pshared = false;
   if (attr != nullptr && (*attr & 1)) {
     barrier->pshared = true;
@@ -162,7 +162,7 @@ int pthread_barrier_wait(pthread_barrier_t* barrier_interface) {
     }
   }
   // Use release operation here to make it not reordered with previous operations.
-  if (atomic_fetch_sub_explicit(&barrier->wait_count, 1, memory_order_release) == 1) {
+  if (atomic_fetch_sub_explicit(&barrier->wait_count, (unsigned int)1, memory_order_release) == 1) {
     // Use release operation here to synchronize with threads entering the barrier for
     // the next cycle, or the thread calling pthread_barrier_destroy().
     atomic_store_explicit(&barrier->state, WAIT, memory_order_release);
