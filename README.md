@@ -13,12 +13,16 @@ Not implemented yet
 - <malloc.h> malloc_info
 - <netdb.h> gethostbyaddr_r, gethostbyname2_r
 - <pthread.h> pthread_rwlockattr_getkind_np/pthread_rwlockattr_setkind_np
-- <stdlib.h> mkostemp/mkostemps, lcong48
 - <resolv.h> functions: ns_format_ttl, ns_get16, ns_get32, ns_initparse, ns_makecanon, ns_msg_getflag, ns_name_compress, ns_name_ntol, ns_name_ntop, ns_name_pack, ns_name_pton, ns_name_rollback, ns_name_skip, ns_name_uncompress, ns_name_unpack, ns_parserr, ns_put16, ns_put32, ns_samename, ns_skiprr, ns_sprintrr, and ns_sprintrrf.
+
+TODO
+----
+- Implement 64 bit offset function
 
 Source
 ------
 - OpenBSD
+- NetBSD
 - Musl libc
 - Android lollipop, marshmallow, and nougat branch
 
