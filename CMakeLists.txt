@@ -2,8 +2,7 @@ set(LIB_MAJOR_VERSION "31")
 set(LIB_VERSION_STRING "${LIB_MAJOR_VERSION}")
 
 if (CMAKE_VERSION VERSION_LESS 3.0)
-  project(lib
- android-support LANGUAGES C CXX ASM)
+  project(libandroid-support LANGUAGES C CXX ASM)
 else()
   cmake_policy(SET CMP0048 NEW)
   project(libandroid-support VERSION "${LIB_VERSION_STRING}" LANGUAGES C CXX ASM)
@@ -11,10 +10,15 @@ endif()
 
 cmake_policy(SET CMP0012 NEW)
 
+
 macro(install_symlink filepath sympath)
     install(CODE "execute_process(COMMAND ${CMAKE_COMMAND} -E create_symlink ${filepath} ${sympath})")
     install(CODE "message(\"-- Created symlink: ${sympath} -> ${filepath}\")")
 endmacro(install_symlink)
+
+set(CMAKE_C_FLAGS "-fPIC -fPIE ${CMAKE_C_FLAGS}")
+set(CMAKE_CXX_FLAGS "-fPIC -fPIE ${CMAKE_CXX_FLAGS}")
+link_libraries("-pie")
 
 option(ENABLE_LIBC "Compile additional libc functionality" OFF)
 option(ENABLE_LIBM "Compile additional libm functionality" OFF)
@@ -23,6 +27,7 @@ option(ENABLE_MUSL_MULTIBYTE "Compile musl-multibyte" ON)
 option(BUILD_SHARED_LIBS "Build shared library" ON)
 option(BUILD_STATIC_LIBS "Build static library" ON)
 option(USE_STATIC_LIBCXX "Link libc++ statically" OFF)
+option(__ANDROID_API__ "Android API" 21)
 
 set(LIBANDROID_SUPPORT_OBJECTS)
 if(ENABLE_LIBC)

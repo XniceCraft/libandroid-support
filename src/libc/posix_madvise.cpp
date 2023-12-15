@@ -26,22 +26,18 @@
  * SUCH DAMAGE.
  */
 
-#include <signal.h>
-#include <string.h>
-#include <sys/types.h>
-#include <sys/cdefs.h>
-#include <unistd.h>
+#include <errno.h>
+#include <sys/mman.h>
 
-__LIBC_HIDDEN__ extern "C" int ___rt_sigqueueinfo(pid_t, int, siginfo_t*);
+#include "private/ErrnoRestorer.h"
 
-extern "C" int sigqueue(pid_t pid, int signo, const sigval value) {
-  siginfo_t info;
-  memset(&info, 0, sizeof(siginfo_t));
-  info.si_signo = signo;
-  info.si_code = SI_QUEUE;
-  info.si_pid = getpid();
-  info.si_uid = getuid();
-  info.si_value = value;
+extern "C" int posix_madvise(void* addr, size_t len, int advice) {
+  ErrnoRestorer errno_restorer;
 
-  return ___rt_sigqueueinfo(pid, signo, &info);
+  // Don't call madvise() on POSIX_MADV_DONTNEED, it will make the space not available.
+  if (advice == POSIX_MADV_DONTNEED) {
+    return 0;
+  }
+
+  return (madvise(addr, len, advice) == 0 ? 0 : errno);
 }

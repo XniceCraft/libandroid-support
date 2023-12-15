@@ -25,23 +25,13 @@
  * OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  */
-
 #include <signal.h>
-#include <string.h>
-#include <sys/types.h>
-#include <sys/cdefs.h>
-#include <unistd.h>
 
-__LIBC_HIDDEN__ extern "C" int ___rt_sigqueueinfo(pid_t, int, siginfo_t*);
+#include "private/kernel_sigset_t.h"
 
-extern "C" int sigqueue(pid_t pid, int signo, const sigval value) {
-  siginfo_t info;
-  memset(&info, 0, sizeof(siginfo_t));
-  info.si_signo = signo;
-  info.si_code = SI_QUEUE;
-  info.si_pid = getpid();
-  info.si_uid = getuid();
-  info.si_value = value;
+extern "C" int __rt_sigtimedwait(const sigset_t*, siginfo_t*, const timespec*, size_t);
 
-  return ___rt_sigqueueinfo(pid, signo, &info);
+extern "C" int sigtimedwait(const sigset_t* set, siginfo_t* info, const timespec* timeout) {
+  kernel_sigset_t sigset(set);
+  return __rt_sigtimedwait(sigset.get(), info, timeout, sizeof(sigset));
 }

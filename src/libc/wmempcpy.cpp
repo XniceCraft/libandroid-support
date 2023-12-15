@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2014 The Android Open Source Project
+ * Copyright (C) 2015 The Android Open Source Project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -26,22 +26,8 @@
  * SUCH DAMAGE.
  */
 
-#include <signal.h>
-#include <string.h>
-#include <sys/types.h>
-#include <sys/cdefs.h>
-#include <unistd.h>
+#include <wchar.h>
 
-__LIBC_HIDDEN__ extern "C" int ___rt_sigqueueinfo(pid_t, int, siginfo_t*);
-
-extern "C" int sigqueue(pid_t pid, int signo, const sigval value) {
-  siginfo_t info;
-  memset(&info, 0, sizeof(siginfo_t));
-  info.si_signo = signo;
-  info.si_code = SI_QUEUE;
-  info.si_pid = getpid();
-  info.si_uid = getuid();
-  info.si_value = value;
-
-  return ___rt_sigqueueinfo(pid, signo, &info);
+extern "C" wchar_t* wmempcpy(wchar_t* dst, const wchar_t* src, size_t n) {
+  return wmemcpy(dst, src, n) + n;
 }

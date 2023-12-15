@@ -26,79 +26,28 @@
  * SUCH DAMAGE.
  */
 
-#include <error.h>
-
-#include <errno.h>
-#include <stdio.h>
+#include <ctype.h>
 #include <stdlib.h>
-#include <string.h>
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
-unsigned int error_message_count = 0;
-void (*error_print_progname)(void) = NULL;
-int error_one_per_line = 0;
-
-static void __error_head() {
-  ++error_message_count;
-
-  if (error_print_progname != NULL) {
-    error_print_progname();
-  } else {
-    fflush(stdout);
-    fprintf(stderr, "%s:", getprogname());
-  }
-}
-
-static void __error_tail(int status, int error) {
-  if (error != 0) {
-    fprintf(stderr, ": %s", strerror(error));
-  }
-
-  putc('\n', stderr);
-  fflush(stderr);
-
-  if (status != 0) {
-    exit(status);
-  }
-}
-void error(int status, int error, const char* fmt, ...) {
-  __error_head();
-
-  putc(' ', stderr);
-
-  va_list ap;
-  va_start(ap, fmt);
-  vfprintf(stderr, fmt, ap);
-  va_end(ap);
-
-  __error_tail(status, error);
-}
-
-void error_at_line(int status, int error, const char* file, unsigned int line, const char* fmt, ...) {
-  if (error_one_per_line) {
-    static const char* last_file;
-    static unsigned int last_line;
-    if (last_line == line && last_file != NULL && strcmp(last_file, file) == 0) {
-      return;
+// Parse a string like: 0, 2-4, 6.
+static int GetCpuCountFromString(const char* s) {
+  int cpu_count = 0;
+  int last_cpu = -1;
+  while (*s != '\0') {
+    if (isdigit(*s)) {
+      int cpu = static_cast<int>(strtol(s, const_cast<char**>(&s), 10));
+      if (last_cpu != -1) {
+        cpu_count += cpu - last_cpu;
+      } else {
+        cpu_count++;
+      }
+      last_cpu = cpu;
+    } else {
+      if (*s == ',') {
+        last_cpu = -1;
+      }
+      s++;
     }
-    last_file = file;
-    last_line = line;
   }
-
-  __error_head();
-  fprintf(stderr, "%s:%d: ", file, line);
-
-  va_list ap;
-  va_start(ap, fmt);
-  vfprintf(stderr, fmt, ap);
-  va_end(ap);
-
-  __error_tail(status, error);
+  return cpu_count;
 }
-
-#ifdef __cplusplus
-}
-#endif

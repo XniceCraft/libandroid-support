@@ -26,22 +26,29 @@
  * SUCH DAMAGE.
  */
 
-#include <signal.h>
-#include <string.h>
-#include <sys/types.h>
-#include <sys/cdefs.h>
-#include <unistd.h>
+#include <errno.h>
+#include <time.h>
 
-__LIBC_HIDDEN__ extern "C" int ___rt_sigqueueinfo(pid_t, int, siginfo_t*);
+#include "private/ErrnoRestorer.h"
 
-extern "C" int sigqueue(pid_t pid, int signo, const sigval value) {
-  siginfo_t info;
-  memset(&info, 0, sizeof(siginfo_t));
-  info.si_signo = signo;
-  info.si_code = SI_QUEUE;
-  info.si_pid = getpid();
-  info.si_uid = getuid();
-  info.si_value = value;
+extern "C" {
 
-  return ___rt_sigqueueinfo(pid, signo, &info);
+int clock_getcpuclockid(pid_t pid, clockid_t* clockid) {
+  ErrnoRestorer errno_restorer;
+
+  // The tid is stored in the top bits, but negated.
+  clockid_t result = ~static_cast<clockid_t>(pid) << 3;
+  // Bits 0 and 1: clock type (0 = CPUCLOCK_PROF, 1 = CPUCLOCK_VIRT, 2 = CPUCLOCK_SCHED).
+  result |= 2;
+  // Bit 2: thread (set) or process (clear). Bit 2 already 0.
+  timespec ts;
+
+  if (clock_getres(result, &ts) == -1) {
+    return ESRCH;
+  }
+
+  *clockid = result;
+  return 0;
+}
+
 }

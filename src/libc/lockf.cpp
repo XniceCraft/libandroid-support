@@ -32,6 +32,8 @@
 #include <fcntl.h>
 #include <string.h>
 
+extern "C" {
+
 int lockf64(int fd, int cmd, off64_t length) {
   // Translate POSIX lockf into fcntl.
   struct flock64 fl;
@@ -70,4 +72,6 @@ int lockf64(int fd, int cmd, off64_t length) {
 
 int lockf(int fd, int cmd, off_t length) {
   return lockf64(fd, cmd, length);
+}
+
 }
