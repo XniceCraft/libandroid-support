@@ -198,6 +198,8 @@ endif()
 add_library(libc OBJECT ${LIBC_SRCS})
 target_include_directories(libc PRIVATE include)
 target_include_directories(libc PRIVATE include/private)
+set_property(TARGET libc PROPERTY C_STANDARD 11)
+set_property(TARGET libc PROPERTY CXX_STANDARD 11)
 list(APPEND LIBANDROID_SUPPORT_OBJECTS $<TARGET_OBJECTS:libc>)
 set(LIBANDROID_SUPPORT_OBJECTS ${LIBANDROID_SUPPORT_OBJECTS} PARENT_SCOPE)
 

@@ -1,3 +1,5 @@
+cmake_minimum_required(VERSION 3.1)
+
 set(LIB_MAJOR_VERSION "31")
 set(LIB_VERSION_STRING "${LIB_MAJOR_VERSION}")
 
