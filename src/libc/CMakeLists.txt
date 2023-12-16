@@ -29,6 +29,7 @@ if(__ANDROID_API__ LESS 23)
         ${LIBC_SRCS}
         clock_getcpuclockid.cpp
         dirent-23.cpp
+        error.c
         lfs64_support.cpp
         locale.cpp
         mempcpy.cpp
